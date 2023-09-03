@@ -202,6 +202,7 @@ local function run_test(path, args)
       table.insert(cmd, optarg['C'])
     end
   end
+  table.insert(cmd, "-gcflags='-N -l'")
 
   if optarg['n'] then
     if run_in_floaterm then
