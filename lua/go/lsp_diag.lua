@@ -4,7 +4,6 @@
 -- New signature on_publish_diagnostics({_}, {result}, {ctx}, {config})
 debug = debug or nil
 local vfn = vim.fn
-
 local function hdlr(result)
   if result and result.diagnostics then
     local item_list = {}
@@ -32,20 +31,23 @@ local function hdlr(result)
   end
 end
 
-local diag_hdlr_0_6 = function(err, result, ctx, config)
-  -- vim.lsp.diagnostic.clear(vfn.bufnr(), client.id, nil, nil)
-  vim.lsp.diagnostic.on_publish_diagnostics(err, result, ctx, config)
-  hdlr(result)
-end
-
-vim.lsp.handlers['textDocument/publishDiagnostics'] = vim.lsp.with(diag_hdlr_0_6, {
-  -- Enable underline, use default values
-  underline = _GO_NVIM_CFG.lsp_diag_underline,
-  -- Enable virtual text, override spacing to 0
-  virtual_text = _GO_NVIM_CFG.lsp_diag_virtual_text,
-  -- Use a function to dynamically turn signs off
-  -- and on, using buffer local variables
-  signs = _GO_NVIM_CFG.lsp_diag_signs,
-  -- Disable a feature
-  update_in_insert = _GO_NVIM_CFG.lsp_diag_update_in_insert,
-})
+return {
+  setup = function()
+    local _diag_hdlr
+    if _GO_NVIM_CFG.diagnostic.hdlr == true then
+      _diag_hdlr = function(err, result, ctx, config)
+        vim.lsp.diagnostic.on_publish_diagnostics(err, result, ctx, config)
+        hdlr(result)
+      end
+    else
+      diag_hdlr = vim.lsp.diagnostic.on_publish_diagnostics
+    end
+    vim.lsp.handlers['textDocument/publishDiagnostics'] = vim.lsp.with(diag_hdlr, {
+      underline = _GO_NVIM_CFG.diagnostic.underline,
+      virtual_text = _GO_NVIM_CFG.diagnostic.virtual_text,
+      signs = _GO_NVIM_CFG.diagnostic.signs,
+      update_in_insert = _GO_NVIM_CFG.diagnostic.update_in_insert,
+    })
+  end,
+  handler = diag_hdlr,
+}
